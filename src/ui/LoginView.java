@@ -599,17 +599,20 @@ public class LoginView extends JFrame {
         
         // Show the login view
         SwingUtilities.invokeLater(() -> {
-            LoginView loginView = new LoginView(new LoginCallback() {
+            // Use a final reference holder to allow inner class access
+            final LoginView[] loginViewRef = new LoginView[1];
+            
+            LoginCallback callback = new LoginCallback() {
                 @Override
                 public void onLogin(String username, String password, boolean rememberMe) {
                     // For demo purposes
                     if ("admin".equals(username) && "password".equals(password)) {
                         // Show the main view
-                        loginView.dispose();
+                        loginViewRef[0].dispose();
                         MainView mainView = new MainView();
                         mainView.setVisible(true);
                     } else {
-                        loginView.showError("Invalid username or password");
+                        loginViewRef[0].showError("Invalid username or password");
                     }
                 }
                 
@@ -621,181 +624,17 @@ public class LoginView extends JFrame {
                 @Override
                 public void onForgotPassword() {
                     JOptionPane.showMessageDialog(
-                        loginView,
+                        loginViewRef[0],
                         "Password reset functionality would be implemented here.",
                         "Forgot Password",
                         JOptionPane.INFORMATION_MESSAGE
                     );
                 }
-            });
+            };
             
-            loginView.setVisible(true);
+            // Create and store the LoginView instance
+            loginViewRef[0] = new LoginView(callback);
+            loginViewRef[0].setVisible(true);
         });
     }
-} = new JPanel(new GridLayout(1, 2, 10, 0));
-        buttonSubPanel.setBackground(Color.WHITE);
-        
-        cancelButton = UIFactory.createSecondaryButton("Cancel");
-        loginButton = UIFactory.createPrimaryButton("Login");
-        
-        buttonSubPanel.add(cancelButton);
-        buttonSubPanel.add(loginButton);
-        
-        panel.add(buttonSubPanel, BorderLayout.CENTER);
-        
-        return panel;
-    }
-    
-    private void registerActions() {
-        // Login button action
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Validate input
-                String username = usernameField.getText().trim();
-                char[] passwordChars = passwordField.getPassword();
-                String password = new String(passwordChars);
-                
-                if (username.isEmpty()) {
-                    setStatusMessage("Username is required");
-                    usernameField.requestFocusInWindow();
-                    return;
-                }
-                
-                if (password.isEmpty()) {
-                    setStatusMessage("Password is required");
-                    passwordField.requestFocusInWindow();
-                    return;
-                }
-                
-                // Clear status and notify callback
-                setStatusMessage("");
-                if (loginCallback != null) {
-                    loginCallback.onCancel();
-                } else {
-                    System.exit(0);
-                }
-            }
-        });
-        
-        // Enter key in password field triggers login
-        passwordField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loginButton.doClick();
-            }
-        });
-    }
-    
-    /**
-     * Sets a status/error message
-     * 
-     * @param message Message to display
-     */
-    public void setStatusMessage(String message) {
-        statusLabel.setText(message);
-    }
-    
-    /**
-     * Shows an error message
-     * 
-     * @param message Error message to display
-     */
-    public void showError(String message) {
-        setStatusMessage(message);
-        
-        // Shake effect for the login button to indicate error
-        final int amplitude = 10;
-        final int cycles = 4;
-        final int speed = 50;
-        
-        Thread shakeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Point originalLocation = loginButton.getLocation();
-                
-                try {
-                    for (int i = 0; i < cycles; i++) {
-                        Thread.sleep(speed);
-                        loginButton.setLocation(new Point(originalLocation.x + amplitude, originalLocation.y));
-                        
-                        Thread.sleep(speed);
-                        loginButton.setLocation(new Point(originalLocation.x - amplitude, originalLocation.y));
-                    }
-                    
-                    // Return to original position
-                    loginButton.setLocation(originalLocation);
-                } catch (InterruptedException e) {
-                    // Restore original position if interrupted
-                    loginButton.setLocation(originalLocation);
-                }
-            }
-        });
-        
-        shakeThread.start();
-    }
-    
-    /**
-     * Sets focus to the username field
-     */
-    public void focusUsernameField() {
-        usernameField.requestFocusInWindow();
-    }
-    
-    /**
-     * Main method to test the login view
-     * 
-     * @param args Command line arguments
-     */
-    public static void main(String[] args) {
-        // Set up UI look and feel
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            
-            // Set global font settings
-            UIManager.put("Label.font", UIFactory.BODY_FONT);
-            UIManager.put("Button.font", UIFactory.BODY_FONT);
-            UIManager.put("TextField.font", UIFactory.BODY_FONT);
-            UIManager.put("PasswordField.font", UIFactory.BODY_FONT);
-            UIManager.put("CheckBox.font", UIFactory.BODY_FONT);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        // Show the login view
-        SwingUtilities.invokeLater(() -> {
-            LoginView loginView = new LoginView(new LoginCallback() {
-                @Override
-                public void onLogin(String username, String password, boolean rememberMe) {
-                    // For demo purposes
-                    if ("admin".equals(username) && "password".equals(password)) {
-                        // Show the main view
-                        loginView.dispose();
-                        MainView mainView = new MainView();
-                        mainView.setVisible(true);
-                    } else {
-                        loginView.showError("Invalid username or password");
-                    }
-                }
-                
-                @Override
-                public void onCancel() {
-                    System.exit(0);
-                }
-            });
-            
-            loginView.setVisible(true);
-        });
-    }
-} {
-                    loginCallback.onLogin(username, password, rememberMeCheckbox.isSelected());
-                }
-            }
-        });
-        
-        // Cancel button action
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (loginCallback != null)
+} 

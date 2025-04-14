@@ -1,5 +1,8 @@
 package ui;
 
+import ui.supplier.SupplierView;
+import ui.product.ProductView;
+import ui.customer.CustomerView;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -8,6 +11,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main application frame that provides the foundation for the Business Management System UI.
@@ -20,15 +26,16 @@ public class MainView extends JFrame {
     private CardLayout contentCardLayout;
     private JLabel statusLabel;
     
-    // Dashboard components
-    private JPanel dashboardPanel;
-    
     // Module panels
-    private JPanel customersPanel;
-    private JPanel productsPanel;
+    private JPanel dashboardPanel;
+    private CustomerView customersPanel;
+    private SupplierView suppliersPanel;
+    private ProductView productsPanel;
     private JPanel ordersPanel;
     private JPanel invoicesPanel;
-    private JPanel suppliersPanel;
+    
+    // Navigation buttons
+    private Map<String, JButton> navButtons = new HashMap<>();
     
     // Constants
     private static final Color PRIMARY_COLOR = new Color(0x1976D2);
@@ -78,7 +85,7 @@ public class MainView extends JFrame {
         setupResponsiveBehavior();
         
         // Set initial content - show dashboard
-        contentCardLayout.first(contentPanel);
+        selectModule("Dashboard");
         
         // Display status message
         setStatusMessage("System ready");
@@ -153,17 +160,33 @@ public class MainView extends JFrame {
         sideNav.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         
         // Create navigation buttons
-        sideNav.add(createNavButton("Dashboard", true));
+        JButton dashboardBtn = createNavButton("Dashboard", true);
+        JButton customersBtn = createNavButton("Customers", false);
+        JButton productsBtn = createNavButton("Products", false);
+        JButton ordersBtn = createNavButton("Orders", false);
+        JButton invoicesBtn = createNavButton("Invoices", false);
+        JButton suppliersBtn = createNavButton("Suppliers", false);
+        
+        // Store buttons in map for easy access
+        navButtons.put("Dashboard", dashboardBtn);
+        navButtons.put("Customers", customersBtn);
+        navButtons.put("Products", productsBtn);
+        navButtons.put("Orders", ordersBtn);
+        navButtons.put("Invoices", invoicesBtn);
+        navButtons.put("Suppliers", suppliersBtn);
+        
+        // Add buttons to panel
+        sideNav.add(dashboardBtn);
         sideNav.add(Box.createRigidArea(new Dimension(0, 10)));
-        sideNav.add(createNavButton("Customers", false));
+        sideNav.add(customersBtn);
         sideNav.add(Box.createRigidArea(new Dimension(0, 10)));
-        sideNav.add(createNavButton("Products", false));
+        sideNav.add(productsBtn);
         sideNav.add(Box.createRigidArea(new Dimension(0, 10)));
-        sideNav.add(createNavButton("Orders", false));
+        sideNav.add(ordersBtn);
         sideNav.add(Box.createRigidArea(new Dimension(0, 10)));
-        sideNav.add(createNavButton("Invoices", false));
+        sideNav.add(invoicesBtn);
         sideNav.add(Box.createRigidArea(new Dimension(0, 10)));
-        sideNav.add(createNavButton("Suppliers", false));
+        sideNav.add(suppliersBtn);
         
         // Add glue to push everything to the top
         sideNav.add(Box.createVerticalGlue());
@@ -196,7 +219,7 @@ public class MainView extends JFrame {
                 }
                 
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    if (!button.isSelected()) {
+                    if (!button.equals(getSelectedNavButton())) {
                         button.setBackground(DARK_GRAY);
                     }
                 }
@@ -204,21 +227,10 @@ public class MainView extends JFrame {
         }
         
         // Add action to switch panels
-        button.addActionListener(e -> {
-            // Deselect all buttons
-            for (Component comp : sideNavPanel.getComponents()) {
-                if (comp instanceof JButton) {
-                    comp.setBackground(DARK_GRAY);
-                }
-            }
-            
-            // Select this button
-            button.setBackground(PRIMARY_COLOR);
-            
-            // Show the corresponding panel
-            if (contentCardLayout != null && contentPanel != null) {
-                contentCardLayout.show(contentPanel, text);
-                setStatusMessage("Viewing " + text);
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectModule(text);
             }
         });
         
@@ -237,11 +249,13 @@ public class MainView extends JFrame {
         
         // Create module panels
         dashboardPanel = createDashboardPanel();
-        customersPanel = createModulePanel("Customers");
-        productsPanel = createModulePanel("Products");
         ordersPanel = createModulePanel("Orders");
         invoicesPanel = createModulePanel("Invoices");
-        suppliersPanel = createModulePanel("Suppliers");
+        
+        // Initialize the custom module views
+        suppliersPanel = new SupplierView();
+        productsPanel = new ProductView();
+        customersPanel = new CustomerView();
         
         // Add panels to card layout
         contentPanel.add(dashboardPanel, "Dashboard");
@@ -258,165 +272,6 @@ public class MainView extends JFrame {
     
     private JPanel createDashboardPanel() {
         return new DashboardPanel();
-    }
-    
-    private JPanel createMetricCard(String title, String value, String change, Color indicatorColor) {
-        JPanel card = new JPanel(new BorderLayout(10, 5));
-        card.setBackground(Color.WHITE);
-        
-        // Add a subtle border
-        Border roundedBorder = new EmptyBorder(15, 15, 15, 15);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(new Color(0xE0E0E0), 1, true),
-            roundedBorder
-        ));
-        
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(BODY_FONT);
-        titleLabel.setForeground(MEDIUM_GRAY);
-        
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        
-        JLabel changeLabel = new JLabel(change);
-        changeLabel.setFont(BODY_FONT);
-        changeLabel.setForeground(indicatorColor);
-        
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setOpaque(false);
-        topPanel.add(titleLabel, BorderLayout.WEST);
-        
-        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        centerPanel.setOpaque(false);
-        centerPanel.add(valueLabel);
-        
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.setOpaque(false);
-        bottomPanel.add(changeLabel, BorderLayout.WEST);
-        
-        card.add(topPanel, BorderLayout.NORTH);
-        card.add(centerPanel, BorderLayout.CENTER);
-        card.add(bottomPanel, BorderLayout.SOUTH);
-        
-        return card;
-    }
-    
-    private JPanel createRecentOrdersPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(new Color(0xE0E0E0), 1, true),
-            new EmptyBorder(15, 15, 15, 15)
-        ));
-        
-        JLabel titleLabel = new JLabel("Recent Orders");
-        titleLabel.setFont(HEADER_FONT);
-        panel.add(titleLabel, BorderLayout.NORTH);
-        
-        // Sample table model
-        String[] columns = {"Order ID", "Customer", "Date", "Amount", "Status"};
-        Object[][] data = {
-            {"ORD-2023-001", "John Smith", "2023-04-10", "$345.67", "Delivered"},
-            {"ORD-2023-002", "Alice Johnson", "2023-04-09", "$127.80", "Processing"},
-            {"ORD-2023-003", "Robert Davis", "2023-04-08", "$582.25", "Shipped"},
-            {"ORD-2023-004", "Emma Wilson", "2023-04-07", "$210.50", "Delivered"},
-            {"ORD-2023-005", "Michael Brown", "2023-04-06", "$78.99", "Processing"}
-        };
-        
-        JTable table = new JTable(data, columns);
-        table.setRowHeight(32);
-        table.setShowGrid(false);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.setBackground(Color.WHITE);
-        table.getTableHeader().setBackground(LIGHT_GRAY);
-        table.getTableHeader().setFont(HEADER_FONT);
-        
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        JButton viewAllButton = new JButton("View All Orders");
-        viewAllButton.setBackground(LIGHT_GRAY);
-        viewAllButton.setForeground(DARK_GRAY);
-        viewAllButton.setFocusPainted(false);
-        
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setOpaque(false);
-        buttonPanel.add(viewAllButton);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        return panel;
-    }
-    
-    private JPanel createLowStockPanel() {
-        JPanel panel = new JPanel(new BorderLayout(0, 10));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-            new LineBorder(new Color(0xE0E0E0), 1, true),
-            new EmptyBorder(15, 15, 15, 15)
-        ));
-        
-        JLabel titleLabel = new JLabel("Low Stock Items");
-        titleLabel.setFont(HEADER_FONT);
-        panel.add(titleLabel, BorderLayout.NORTH);
-        
-        // Sample table model
-        String[] columns = {"Product Code", "Name", "Current Stock", "Min. Stock"};
-        Object[][] data = {
-            {"PRD-00123", "USB Cable Type-C", 5, 15},
-            {"PRD-00456", "Wireless Mouse", 3, 10},
-            {"PRD-00789", "Bluetooth Speaker", 2, 8},
-            {"PRD-00234", "HDMI Cable 2m", 4, 12},
-            {"PRD-00567", "Power Bank 10000mAh", 1, 5}
-        };
-        
-        JTable table = new JTable(data, columns);
-        table.setRowHeight(32);
-        table.setShowGrid(false);
-        table.setIntercellSpacing(new Dimension(0, 0));
-        table.setBackground(Color.WHITE);
-        table.getTableHeader().setBackground(LIGHT_GRAY);
-        table.getTableHeader().setFont(HEADER_FONT);
-        
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        JButton restockButton = new JButton("Restock Items");
-        restockButton.setBackground(WARNING_COLOR);
-        restockButton.setForeground(Color.WHITE);
-        restockButton.setFocusPainted(false);
-        
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setOpaque(false);
-        buttonPanel.add(restockButton);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        return panel;
-    }
-    
-    private JPanel createQuickActionsPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 4, 20, 0));
-        panel.setOpaque(false);
-        
-        panel.add(createActionButton("New Customer", SECONDARY_COLOR));
-        panel.add(createActionButton("New Order", PRIMARY_COLOR));
-        panel.add(createActionButton("Add Product", SUCCESS_COLOR));
-        panel.add(createActionButton("Create Invoice", WARNING_COLOR));
-        
-        return panel;
-    }
-    
-    private JButton createActionButton(String text, Color backgroundColor) {
-        JButton button = new JButton(text);
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setFont(BODY_FONT);
-        button.setPreferredSize(new Dimension(150, 40));
-        
-        return button;
     }
     
     private JPanel createModulePanel(String moduleName) {
@@ -515,12 +370,9 @@ public class MainView extends JFrame {
         isMenuExpanded = false;
         
         // Update nav buttons to show only icons
-        for (Component comp : sideNavPanel.getComponents()) {
-            if (comp instanceof JButton) {
-                JButton button = (JButton) comp;
-                button.setText("");
-                button.setPreferredSize(new Dimension(40, 40));
-            }
+        for (JButton button : navButtons.values()) {
+            button.setText("");
+            button.setPreferredSize(new Dimension(40, 40));
         }
         
         revalidate();
@@ -531,15 +383,9 @@ public class MainView extends JFrame {
         isMenuExpanded = true;
         
         // Restore button text
-        String[] buttonTexts = {"Dashboard", "Customers", "Products", "Orders", "Invoices", "Suppliers", "Toggle Theme"};
-        int buttonIndex = 0;
-        
-        for (Component comp : sideNavPanel.getComponents()) {
-            if (comp instanceof JButton && buttonIndex < buttonTexts.length) {
-                JButton button = (JButton) comp;
-                button.setText(buttonTexts[buttonIndex++]);
-                button.setPreferredSize(null); // Reset to default
-            }
+        for (Map.Entry<String, JButton> entry : navButtons.entrySet()) {
+            entry.getValue().setText(entry.getKey());
+            entry.getValue().setPreferredSize(null); // Reset to default
         }
         
         revalidate();
@@ -551,17 +397,56 @@ public class MainView extends JFrame {
                                      "Theme Toggle", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    private void showPanel(String panelName) {
+    /**
+     * Selects a module and shows its panel
+     * 
+     * @param moduleName The name of the module to select
+     */
+    public void selectModule(String moduleName) {
+        // Update navigation button states
+        for (Map.Entry<String, JButton> entry : navButtons.entrySet()) {
+            if (entry.getKey().equals(moduleName)) {
+                entry.getValue().setBackground(PRIMARY_COLOR);
+            } else {
+                entry.getValue().setBackground(DARK_GRAY);
+            }
+        }
+        
+        // Show the selected panel
         if (contentPanel != null && contentCardLayout != null) {
-            contentCardLayout.show(contentPanel, panelName);
-            setStatusMessage("Viewing " + panelName);
+            contentCardLayout.show(contentPanel, moduleName);
+            setStatusMessage("Viewing " + moduleName);
         }
     }
     
+    /**
+     * Gets the currently selected navigation button
+     * 
+     * @return The selected button or null if none
+     */
+    private JButton getSelectedNavButton() {
+        for (JButton button : navButtons.values()) {
+            if (button.getBackground().equals(PRIMARY_COLOR)) {
+                return button;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Sets a status message
+     * 
+     * @param message The message to display
+     */
     private void setStatusMessage(String message) {
         statusLabel.setText(message);
     }
     
+    /**
+     * Main method to launch the application
+     * 
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             MainView mainView = new MainView();

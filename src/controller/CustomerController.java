@@ -2,233 +2,276 @@ package controller;
 
 import dao.CustomerDao;
 import model.Customer;
-import java.time.LocalDate;
+import ui.DialogFactory;
+import ui.customer.CustomerDetailsView;
+import ui.customer.CustomerFormView;
+import ui.customer.CustomerListView;
+
+import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 
 /**
- * Controller class for Customer operations.
- * Acts as an intermediary between the view and the data access layer.
+ * Controller for Customer module operations.
+ * Manages interactions between the customer views and the data access layer.
  */
 public class CustomerController {
+    // Data access
     private CustomerDao customerDao;
     
+    // Views
+    private CustomerListView listView;
+    private Component parentComponent;
+    
     /**
-     * Default constructor
+     * Constructor
+     * 
+     * @param parentComponent Parent component for dialogs
      */
-    public CustomerController() {
+    public CustomerController(Component parentComponent) {
         this.customerDao = new CustomerDao();
+        this.parentComponent = parentComponent;
+        
+        // Initialize the list view
+        initializeListView();
     }
     
     /**
-     * Constructor with dependency injection for testing
+     * Gets the customer list view
      * 
-     * @param customerDao The customer DAO to use
+     * @return The customer list view
      */
-    public CustomerController(CustomerDao customerDao) {
-        this.customerDao = customerDao;
+    public CustomerListView getListView() {
+        return listView;
     }
     
     /**
-     * Adds a new customer
-     * 
-     * @param customerId Unique customer ID
-     * @param firstName First name
-     * @param lastName Last name
-     * @param email Email address
-     * @param phone Phone number
-     * @param address Address
-     * @return The created customer if successful, null otherwise
+     * Initializes the customer list view with callbacks
      */
-    public Customer addCustomer(String customerId, String firstName, String lastName, 
-                              String email, String phone, String address) {
-        // Validate inputs
-        if (customerId == null || customerId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Customer ID cannot be empty");
-        }
-        if (firstName == null || firstName.trim().isEmpty()) {
-            throw new IllegalArgumentException("First name cannot be empty");
-        }
-        if (lastName == null || lastName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Last name cannot be empty");
-        }
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be empty");
+    private void initializeListView() {
+        listView = new CustomerListView(new CustomerListView.CustomerListCallback() {
+            @Override
+            public void onAddCustomer() {
+                showAddCustomerDialog();
+            }
+            
+            @Override
+            public void onEditCustomer(Customer customer) {
+                showEditCustomerDialog(customer);
+            }
+            
+            @Override
+            public void onDeleteCustomer(Customer customer) {
+                // Nothing needed here - handled within the list view
+            }
+            
+            @Override
+            public void onViewCustomerDetails(Customer customer) {
+                showCustomerDetailsDialog(customer);
+            }
+            
+            @Override
+            public void onViewCustomerOrders(Customer customer) {
+                showCustomerWithOrders(customer);
+            }
+        });
+    }
+    
+    /**
+     * Shows the add customer dialog
+     */
+    private void showAddCustomerDialog() {
+        final CustomerFormView[] formView = new CustomerFormView[1];
+        formView[0] = new CustomerFormView(new CustomerFormView.FormSubmissionCallback() {
+            @Override
+            public void onSave(Customer customer) {
+                // Update the list view with the new customer
+                listView.addCustomer(customer);
+                
+                // Close the dialog
+                Window window = SwingUtilities.getWindowAncestor(formView[0]);
+                if (window instanceof JDialog) {
+                    ((JDialog) window).dispose();
+                }
+            }
+            
+            @Override
+            public void onCancel() {
+                // Close the dialog
+                Window window = SwingUtilities.getWindowAncestor(formView[0]);
+                if (window instanceof JDialog) {
+                    ((JDialog) window).dispose();
+                }
+            }
+        });
+        
+        // Create and show the dialog
+        JDialog dialog = DialogFactory.createFormDialog(
+            parentComponent,
+            "Add New Customer",
+            formView[0],
+            null, // onSave handled in callback
+            null, // onCancel handled in callback
+            600,
+            550
+        );
+        
+        dialog.setVisible(true);
+    }
+    
+    /**
+     * Shows the edit customer dialog
+     * 
+     * @param customer The customer to edit
+     */
+    private void showEditCustomerDialog(Customer customer) {
+        CustomerFormView[] formView = new CustomerFormView[1];
+        formView[0] = new CustomerFormView(customer, new CustomerFormView.FormSubmissionCallback() {
+            @Override
+            public void onSave(Customer updatedCustomer) {
+                // Update the list view with the modified customer
+                listView.updateCustomer(updatedCustomer);
+                
+                // Close the dialog
+                Window window = SwingUtilities.getWindowAncestor(formView[0]);
+                if (window instanceof JDialog) {
+                    ((JDialog) window).dispose();
+                }
+            }
+            
+            @Override
+            public void onCancel() {
+                // Close the dialog
+                Window window = SwingUtilities.getWindowAncestor(formView[0]);
+                if (window instanceof JDialog) {
+                    ((JDialog) window).dispose();
+                }
+            }
+        });
+        
+        // Create and show the dialog
+        JDialog dialog = DialogFactory.createFormDialog(
+            parentComponent,
+            "Edit Customer",
+            formView[0],
+            null, // onSave handled in callback
+            null, // onCancel handled in callback
+            600,
+            550
+        );
+        
+        dialog.setVisible(true);
+    }
+    
+    /**
+     * Shows the customer details dialog
+     * 
+     * @param customer The customer to view
+     */
+    private void showCustomerDetailsDialog(Customer customer) {
+        // First, load the customer with orders information
+        Customer customerWithOrders = customerDao.getCustomerWithOrders(customer.getId());
+        if (customerWithOrders == null) {
+            customerWithOrders = customer;
         }
         
-        // Check if customer ID already exists
-        Customer existingCustomer = customerDao.findCustomerByCustomerId(customerId);
-        if (existingCustomer != null) {
-            throw new IllegalArgumentException("Customer ID already exists");
-        }
+        // Create the details view with the customer that has orders information
+        final CustomerDetailsView[] detailsView = new CustomerDetailsView[1];
+        detailsView[0] = new CustomerDetailsView(customerWithOrders, 
+                new CustomerDetailsView.DetailsViewCallback() {
+                    @Override
+                    public void onEditCustomer(Customer customerToEdit) {
+                        // Close the details dialog
+                        Window window = SwingUtilities.getWindowAncestor(detailsView[0]);
+                        if (window instanceof JDialog) {
+                            ((JDialog) window).dispose();
+                        }
+                        
+                        // Show the edit dialog
+                        showEditCustomerDialog(customerToEdit);
+                    }
+                    
+                    @Override
+                    public void onViewOrders(Customer customerWithOrders) {
+                        // This would navigate to the orders view for this customer
+                        JOptionPane.showMessageDialog(
+                                parentComponent,
+                                "View Orders functionality would show all orders for " +
+                                        customerWithOrders.getFullName(),
+                                "View Orders",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                    }
+                    
+                    @Override
+                    public void onClose() {
+                        // Close the dialog
+                        Window window = SwingUtilities.getWindowAncestor(detailsView[0]);
+                        if (window instanceof JDialog) {
+                            ((JDialog) window).dispose();
+                        }
+                    }
+                });
         
-        // Check if email already exists
-        existingCustomer = customerDao.findCustomerByEmail(email);
-        if (existingCustomer != null) {
-            throw new IllegalArgumentException("Email already exists");
-        }
+        // Create and show the dialog
+        JDialog dialog = DialogFactory.createDetailsDialog(
+            parentComponent,
+            "Customer Details",
+            detailsView[0],
+            null, // onEdit handled in callback
+            700,
+            600
+        );
         
-        // Create customer object
-        Customer customer = new Customer();
-        customer.setCustomerId(customerId);
-        customer.setFirstName(firstName);
-        customer.setLastName(lastName);
-        customer.setEmail(email);
-        customer.setPhone(phone);
-        customer.setAddress(address);
-        customer.setRegistrationDate(LocalDate.now());
-        
-        // Save customer
-        int result = customerDao.createCustomer(customer);
-        if (result > 0) {
-            return customer;
-        } else {
-            return null;
+        dialog.setVisible(true);
+    }
+    
+    /**
+     * Shows the customer with their order history
+     * 
+     * @param customer The customer to view with orders
+     */
+    private void showCustomerWithOrders(Customer customer) {
+        try {
+            // Load the customer with orders
+            Customer customerWithOrders = customerDao.getCustomerWithOrders(customer.getId());
+            
+            if (customerWithOrders != null) {
+                showCustomerDetailsDialog(customerWithOrders);
+            } else {
+                JOptionPane.showMessageDialog(
+                    parentComponent,
+                    "Failed to load customer orders.",
+                    "Data Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                parentComponent,
+                "Error loading customer orders: " + ex.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            ex.printStackTrace();
         }
     }
     
     /**
-     * Updates an existing customer
-     * 
-     * @param id The ID of the customer to update
-     * @param customerId Unique customer ID
-     * @param firstName First name
-     * @param lastName Last name
-     * @param email Email address
-     * @param phone Phone number
-     * @param address Address
-     * @return The updated customer if successful, null otherwise
+     * Refreshes the customer list with data from the database
      */
-    public Customer updateCustomer(int id, String customerId, String firstName, String lastName, 
-                                 String email, String phone, String address) {
-        // Get the existing customer
-        Customer customer = customerDao.findCustomerById(id);
-        if (customer == null) {
-            throw new IllegalArgumentException("Customer not found");
+    public void refreshCustomerList() {
+        try {
+            List<Customer> customers = customerDao.findAllCustomers();
+            listView.updateCustomers(customers);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                parentComponent,
+                "Error loading customers: " + ex.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            ex.printStackTrace();
         }
-        
-        // Validate inputs
-        if (customerId == null || customerId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Customer ID cannot be empty");
-        }
-        if (firstName == null || firstName.trim().isEmpty()) {
-            throw new IllegalArgumentException("First name cannot be empty");
-        }
-        if (lastName == null || lastName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Last name cannot be empty");
-        }
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be empty");
-        }
-        
-        // Check if customer ID already exists and is not this customer
-        Customer existingCustomer = customerDao.findCustomerByCustomerId(customerId);
-        if (existingCustomer != null && existingCustomer.getId() != id) {
-            throw new IllegalArgumentException("Customer ID already exists");
-        }
-        
-        // Check if email already exists and is not this customer
-        existingCustomer = customerDao.findCustomerByEmail(email);
-        if (existingCustomer != null && existingCustomer.getId() != id) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-        
-        // Update customer object
-        customer.setCustomerId(customerId);
-        customer.setFirstName(firstName);
-        customer.setLastName(lastName);
-        customer.setEmail(email);
-        customer.setPhone(phone);
-        customer.setAddress(address);
-        
-        // Save updated customer
-        int result = customerDao.updateCustomer(customer);
-        if (result > 0) {
-            return customer;
-        } else {
-            return null;
-        }
-    }
-    
-    /**
-     * Gets a customer by ID
-     * 
-     * @param id The ID of the customer
-     * @return The customer if found, null otherwise
-     */
-    public Customer getCustomerById(int id) {
-        return customerDao.findCustomerById(id);
-    }
-    
-    /**
-     * Gets a customer by customer ID
-     * 
-     * @param customerId The customer ID to search for
-     * @return The customer if found, null otherwise
-     */
-    public Customer getCustomerByCustomerId(String customerId) {
-        return customerDao.findCustomerByCustomerId(customerId);
-    }
-    
-    /**
-     * Gets a customer by email
-     * 
-     * @param email The email to search for
-     * @return The customer if found, null otherwise
-     */
-    public Customer getCustomerByEmail(String email) {
-        return customerDao.findCustomerByEmail(email);
-    }
-    
-    /**
-     * Searches for customers by name
-     * 
-     * @param name The name to search for
-     * @return List of matching customers
-     */
-    public List<Customer> searchCustomersByName(String name) {
-        return customerDao.findCustomersByName(name);
-    }
-    
-    /**
-     * Gets all customers
-     * 
-     * @return List of all customers
-     */
-    public List<Customer> getAllCustomers() {
-        return customerDao.findAllCustomers();
-    }
-    
-    /**
-     * Gets a customer with their order history
-     * 
-     * @param customerId The ID of the customer
-     * @return The customer with orders loaded, null if not found
-     */
-    public Customer getCustomerWithOrders(int customerId) {
-        return customerDao.getCustomerWithOrders(customerId);
-    }
-    
-    /**
-     * Deletes a customer
-     * 
-     * @param id The ID of the customer to delete
-     * @return true if successful, false otherwise
-     */
-    public boolean deleteCustomer(int id) {
-        // Check if customer exists
-        Customer customer = customerDao.findCustomerById(id);
-        if (customer == null) {
-            throw new IllegalArgumentException("Customer not found");
-        }
-        
-        // Check if customer has orders
-        Customer customerWithOrders = customerDao.getCustomerWithOrders(id);
-        if (customerWithOrders != null && !customerWithOrders.getOrders().isEmpty()) {
-            throw new IllegalStateException("Cannot delete customer with orders");
-        }
-        
-        // Delete customer
-        int result = customerDao.deleteCustomer(id);
-        return result > 0;
     }
 }

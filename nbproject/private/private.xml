@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/util/CurrencyUtil.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/SupplierFormView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/LoginView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/OrderListView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/controller/SupplierController.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/DbConnection.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/Product.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/ProductDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/CustomerListView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/ThemeManager.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/InvoiceDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/util/LogUtil.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/controller/CustomerController.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/OrderDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/Supplier.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/Order.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/PaymentDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/util/ValidationUtil.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/SupplierView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/DialogFactory.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/DashboardPanel.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/SupplierDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/customermgtsystem/CustomerMgtSystem.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/util/DateUtil.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/OrderItem.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/UIFactory.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/MainView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/Customer.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/Invoice.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/ProductFormView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/CustomerDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/dao/OrderItemDao.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/SupplierDetailsView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/util/ReportGenerator.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/ui/SupplierListView.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/model/Payment.java</file>
+            <file>file:/D:/Auca/java/CustomerMgtSystem/src/util/SecurityUtil.java</file>
+        </group>
+    </open-files>
+</project-private>
