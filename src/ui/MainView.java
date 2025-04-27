@@ -14,6 +14,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
+import ui.order.OrderView;
 
 /**
  * Main application frame that provides the foundation for the Business Management System UI.
@@ -60,7 +61,7 @@ public class MainView extends JFrame {
     
     private void initializeUI() {
         // Configure the main frame
-        setTitle("Business Management System");
+        setTitle("Customer Management System");
         setSize(1200, 800);
         setMinimumSize(new Dimension(900, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -256,6 +257,7 @@ public class MainView extends JFrame {
         suppliersPanel = new SupplierView();
         productsPanel = new ProductView();
         customersPanel = new CustomerView();
+        ordersPanel = new OrderView();
         
         // Add panels to card layout
         contentPanel.add(dashboardPanel, "Dashboard");
