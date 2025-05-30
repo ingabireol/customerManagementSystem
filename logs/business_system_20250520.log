@@ -1,0 +1,43 @@
+May 20, 2025 4:10:50 PM util.LogUtil info
+INFO: Logging system initialized
+May 20, 2025 4:10:50 PM util.LogUtil error
+SEVERE: Failed to create user: ERROR: duplicate key value violates unique constraint "users_username_key"
+  Detail: Key (username)=(kamugisha) already exists.
+org.postgresql.util.PSQLException: ERROR: duplicate key value violates unique constraint "users_username_key"
+  Detail: Key (username)=(kamugisha) already exists.
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2310)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2023)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:217)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:421)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:166)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:137)
+	at dao.UserDao.createUser(UserDao.java:55)
+	at customermgtsystem.CustomerMgtSystem.createUser(CustomerMgtSystem.java:34)
+	at customermgtsystem.CustomerMgtSystem.main(CustomerMgtSystem.java:22)
+
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Logging system initialized
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Application starting up...
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Testing database connection...
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: PostgreSQL JDBC driver loaded
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Database connection successful
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Users table created or exists: true
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Default admin user created or exists: true
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Setting up Look and Feel...
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: UI Look and Feel initialized
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Launching login view...
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Main thread continuing...
+May 20, 2025 4:11:15 PM util.LogUtil info
+INFO: Inside SwingUtilities.invokeLater...
+May 20, 2025 4:11:16 PM util.LogUtil info
+INFO: Login view should now be visible

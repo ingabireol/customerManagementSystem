@@ -50,7 +50,7 @@ public class DbConnection {
             String user = "postgres";
             String password = "postgres";
             int maxPoolSize = 10;
-            
+           
             // Read properties from file if available
             Properties props = new Properties();
             try {

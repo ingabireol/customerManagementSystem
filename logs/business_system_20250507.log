@@ -1,0 +1,26 @@
+May 07, 2025 5:27:28 PM util.LogUtil info
+INFO: Logging system initialized
+May 07, 2025 5:27:28 PM util.LogUtil info
+INFO: Application starting up...
+May 07, 2025 5:27:28 PM util.LogUtil info
+INFO: Testing database connection...
+May 07, 2025 5:27:28 PM util.LogUtil info
+INFO: PostgreSQL JDBC driver loaded
+May 07, 2025 5:27:28 PM util.LogUtil info
+INFO: Database connection successful
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: Users table created or exists: true
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: Default admin user created or exists: true
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: Setting up Look and Feel...
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: UI Look and Feel initialized
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: Launching login view...
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: Main thread continuing...
+May 07, 2025 5:27:29 PM util.LogUtil info
+INFO: Inside SwingUtilities.invokeLater...
+May 07, 2025 5:27:30 PM util.LogUtil info
+INFO: Login view should now be visible

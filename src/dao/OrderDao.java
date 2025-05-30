@@ -27,102 +27,105 @@ public class OrderDao {
      * @param order The order to create
      * @return Number of rows affected
      */
-    public int createOrder(Order order) {
-        Connection con = null;
-        try {
-            // Create connection
-            con = DriverManager.getConnection(db_url, db_username, db_passwd);
-            
-            // Start transaction
-            con.setAutoCommit(false);
-            
-            // Prepare statement for order
-            String sql = "INSERT INTO orders (order_id, customer_id, order_date, total_amount, status, payment_method) " +
-                         "VALUES (?, ?, ?, ?, ?, ?)";
-            PreparedStatement pst = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            
-            pst.setString(1, order.getOrderId());
-            pst.setInt(2, order.getCustomerId());
-            pst.setDate(3, java.sql.Date.valueOf(order.getOrderDate()));
-            pst.setBigDecimal(4, order.getTotalAmount());
-            pst.setString(5, order.getStatus());
-            pst.setString(6, order.getPaymentMethod());
-            
-            // Execute statement
-            int rowsAffected = pst.executeUpdate();
-            
-            // Get generated ID
-            ResultSet rs = pst.getGeneratedKeys();
-            if (rs.next()) {
-                order.setId(rs.getInt(1));
-            } else {
-                throw new Exception("Failed to get order ID");
-            }
-            rs.close();
-            
-            // Insert order items if any
-            if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
-                for (OrderItem item : order.getOrderItems()) {
-                    sql = "INSERT INTO order_items (order_id, product_id, quantity, unit_price) " +
-                         "VALUES (?, ?, ?, ?)";
-                    PreparedStatement itemPst = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                    
-                    itemPst.setInt(1, order.getId());
-                    itemPst.setInt(2, item.getProductId());
-                    itemPst.setInt(3, item.getQuantity());
-                    itemPst.setBigDecimal(4, item.getUnitPrice());
-                    
-                    itemPst.executeUpdate();
-                    
-                    // Get generated ID for the item
-                    ResultSet itemRs = itemPst.getGeneratedKeys();
-                    if (itemRs.next()) {
-                        item.setId(itemRs.getInt(1));
-                    }
-                    itemRs.close();
-                    itemPst.close();
-                    
-                    // Update product stock
-                    sql = "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?";
-                    PreparedStatement stockPst = con.prepareStatement(sql);
-                    stockPst.setInt(1, item.getQuantity());
-                    stockPst.setInt(2, item.getProductId());
-                    stockPst.executeUpdate();
-                    stockPst.close();
+    /**
+ * Creates a new order in the database
+ * 
+ * @param order The order to create
+ * @return Number of rows affected
+ */
+public int createOrder(Order order) {
+    Connection con = null;
+    try {
+        // Create connection
+        con = DriverManager.getConnection(db_url, db_username, db_passwd);
+        
+        // Start transaction
+        con.setAutoCommit(false);
+        
+        // Prepare statement for order
+        String sql = "INSERT INTO orders (order_id, customer_id, order_date, total_amount, status, payment_method) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
+        PreparedStatement pst = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        
+        pst.setString(1, order.getOrderId());
+        pst.setInt(2, order.getCustomerId());
+        pst.setDate(3, java.sql.Date.valueOf(order.getOrderDate()));
+        pst.setBigDecimal(4, order.getTotalAmount());
+        pst.setString(5, order.getStatus());
+        pst.setString(6, order.getPaymentMethod());
+        
+        // Execute statement
+        int rowsAffected = pst.executeUpdate();
+        
+        // Get generated ID
+        ResultSet rs = pst.getGeneratedKeys();
+        if (rs.next()) {
+            order.setId(rs.getInt(1));
+        } else {
+            throw new Exception("Failed to get order ID");
+        }
+        rs.close();
+        
+        // Insert order items if any
+        if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
+            for (OrderItem item : order.getOrderItems()) {
+                sql = "INSERT INTO order_items (order_id, product_id, quantity, unit_price) " +
+                     "VALUES (?, ?, ?, ?)";
+                PreparedStatement itemPst = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                
+                itemPst.setInt(1, order.getId());
+                itemPst.setInt(2, item.getProductId());
+                itemPst.setInt(3, item.getQuantity());
+                itemPst.setBigDecimal(4, item.getUnitPrice());
+                
+                itemPst.executeUpdate();
+                
+                // Get generated ID for the item
+                ResultSet itemRs = itemPst.getGeneratedKeys();
+                if (itemRs.next()) {
+                    item.setId(itemRs.getInt(1));
                 }
-            }
-            
-            // Commit transaction
-            con.commit();
-            
-            // Close connection
-            con.close();
-            return rowsAffected;
-            
-        } catch (Exception ex) {
-            try {
-                // Rollback transaction on error
-                if (con != null) {
-                    con.rollback();
-                }
-            } catch (Exception rollbackEx) {
-                rollbackEx.printStackTrace();
-            }
-            
-            ex.printStackTrace();
-            return 0;
-        } finally {
-            try {
-                if (con != null) {
-                    con.setAutoCommit(true);
-                    con.close();
-                }
-            } catch (Exception closeEx) {
-                closeEx.printStackTrace();
+                itemRs.close();
+                itemPst.close();
+                
+                // Update product stock
+                sql = "UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?";
+                PreparedStatement stockPst = con.prepareStatement(sql);
+                stockPst.setInt(1, item.getQuantity());
+                stockPst.setInt(2, item.getProductId());
+                stockPst.executeUpdate();
+                stockPst.close();
             }
         }
+        
+        // Commit transaction
+        con.commit();
+        
+        return rowsAffected;
+        
+    } catch (Exception ex) {
+        try {
+            // Rollback transaction on error
+            if (con != null && !con.isClosed()) {
+                con.rollback();
+            }
+        } catch (Exception rollbackEx) {
+            rollbackEx.printStackTrace();
+        }
+        
+        ex.printStackTrace();
+        return 0;
+    } finally {
+        try {
+            if (con != null && !con.isClosed()) {
+                con.setAutoCommit(true);
+                con.close();
+            }
+        } catch (Exception closeEx) {
+            closeEx.printStackTrace();
+        }
     }
-    
+}
     /**
      * Updates an existing order in the database
      * 

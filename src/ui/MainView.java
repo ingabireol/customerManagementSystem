@@ -1,5 +1,6 @@
 package ui;
 
+import controller.AuthController;
 import ui.supplier.SupplierView;
 import ui.product.ProductView;
 import ui.customer.CustomerView;
@@ -14,6 +15,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
+import model.User;
+import ui.auth.Session;
 import ui.order.OrderView;
 
 /**
@@ -116,42 +119,55 @@ public class MainView extends JFrame {
         }
     }
     
-    private JPanel createTopBar() {
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(PRIMARY_COLOR);
-        topBar.setPreferredSize(new Dimension(getWidth(), 50));
-        topBar.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-        
-        // Application title
-        JLabel titleLabel = new JLabel("Business Management System");
-        titleLabel.setFont(TITLE_FONT);
-        titleLabel.setForeground(Color.WHITE);
-        topBar.add(titleLabel, BorderLayout.WEST);
-        
-        // Global actions (right side)
-        JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        actionsPanel.setOpaque(false);
-        
-        // User info
-        JLabel userLabel = new JLabel("Admin User");
-        userLabel.setForeground(Color.WHITE);
-        
-        // Settings button
-        JButton settingsButton = createIconButton("Settings");
-        settingsButton.setForeground(Color.WHITE);
-        
-        // Logout button
-        JButton logoutButton = createIconButton("Logout");
-        logoutButton.setForeground(Color.WHITE);
-        
-        actionsPanel.add(userLabel);
-        actionsPanel.add(settingsButton);
-        actionsPanel.add(logoutButton);
-        
-        topBar.add(actionsPanel, BorderLayout.EAST);
-        
-        return topBar;
+    // Update the top bar section in MainView.java to include user information and logout
+
+// Replace the existing createTopBar method with this updated version:
+
+private JPanel createTopBar() {
+    JPanel topBar = new JPanel(new BorderLayout());
+    topBar.setBackground(PRIMARY_COLOR);
+    topBar.setPreferredSize(new Dimension(getWidth(), 50));
+    topBar.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+    
+    // Application title
+    JLabel titleLabel = new JLabel("Customer Management System");
+    titleLabel.setFont(TITLE_FONT);
+    titleLabel.setForeground(Color.WHITE);
+    topBar.add(titleLabel, BorderLayout.WEST);
+    
+    // Global actions (right side)
+    JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    actionsPanel.setOpaque(false);
+    
+    // Get the current user from session
+    User currentUser = Session.getInstance().getCurrentUser();
+    String userDisplayName = "Guest";
+    if (currentUser != null) {
+        userDisplayName = currentUser.getFullName();
     }
+    
+    // User info
+    JLabel userLabel = new JLabel(userDisplayName);
+    userLabel.setForeground(Color.WHITE);
+    
+    // Settings button
+    JButton settingsButton = createIconButton("Settings");
+    settingsButton.setForeground(Color.WHITE);
+    settingsButton.addActionListener(e -> showSettingsMenu(settingsButton));
+    
+    // Logout button
+    JButton logoutButton = createIconButton("Logout");
+    logoutButton.setForeground(Color.WHITE);
+    logoutButton.addActionListener(e -> logout());
+    
+    actionsPanel.add(userLabel);
+    actionsPanel.add(settingsButton);
+    actionsPanel.add(logoutButton);
+    
+    topBar.add(actionsPanel, BorderLayout.EAST);
+    
+    return topBar;
+}
     
     private JPanel createSideNav() {
         JPanel sideNav = new JPanel();
@@ -443,6 +459,158 @@ public class MainView extends JFrame {
     private void setStatusMessage(String message) {
         statusLabel.setText(message);
     }
+    /**
+ * Shows the settings popup menu
+ * 
+ * @param component The component to show the menu next to
+ */
+private void showSettingsMenu(Component component) {
+    JPopupMenu menu = new JPopupMenu();
+    
+    JMenuItem profileItem = new JMenuItem("User Profile");
+    JMenuItem changePasswordItem = new JMenuItem("Change Password");
+    JMenuItem preferencesItem = new JMenuItem("Preferences");
+    
+    // Add menu items
+    menu.add(profileItem);
+    menu.add(changePasswordItem);
+    menu.addSeparator();
+    menu.add(preferencesItem);
+    
+    // Add actions
+    profileItem.addActionListener(e -> showUserProfile());
+    changePasswordItem.addActionListener(e -> changePassword());
+    preferencesItem.addActionListener(e -> showPreferences());
+    
+    // Show the menu
+    menu.show(component, 0, component.getHeight());
+}
+
+/**
+ * Shows the user profile dialog
+ */
+private void showUserProfile() {
+    User currentUser = Session.getInstance().getCurrentUser();
+    if (currentUser == null) {
+        return;
+    }
+    
+    // Create a panel to display user information
+    JPanel panel = new JPanel(new BorderLayout(0, 10));
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    
+    // Title
+    JLabel titleLabel = new JLabel("User Profile");
+    titleLabel.setFont(TITLE_FONT);
+    panel.add(titleLabel, BorderLayout.NORTH);
+    
+    // User details panel
+    JPanel detailsPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+    detailsPanel.setBackground(Color.WHITE);
+    
+    // Add user details
+    detailsPanel.add(new JLabel("Username:"));
+    detailsPanel.add(new JLabel(currentUser.getUsername()));
+    
+    detailsPanel.add(new JLabel("Full Name:"));
+    detailsPanel.add(new JLabel(currentUser.getFullName()));
+    
+    detailsPanel.add(new JLabel("Email:"));
+    detailsPanel.add(new JLabel(currentUser.getEmail()));
+    
+    detailsPanel.add(new JLabel("Role:"));
+    detailsPanel.add(new JLabel(currentUser.getRole()));
+    
+    if (currentUser.getLastLogin() != null) {
+        detailsPanel.add(new JLabel("Last Login:"));
+        detailsPanel.add(new JLabel(currentUser.getLastLogin().toString()));
+    }
+    
+    panel.add(detailsPanel, BorderLayout.CENTER);
+    
+    // Show the dialog
+    JOptionPane.showMessageDialog(
+        this,
+        panel,
+        "User Profile",
+        JOptionPane.PLAIN_MESSAGE
+    );
+}
+
+/**
+ * Shows the change password dialog
+ */
+private void changePassword() {
+    // Create an instance of AuthController and call its method
+    AuthController authController = new AuthController(this);
+    authController.showChangePasswordDialog();
+}
+
+/**
+ * Shows the preferences dialog
+ */
+private void showPreferences() {
+    // Simple preferences dialog with theme toggle
+    JPanel panel = new JPanel(new BorderLayout(0, 10));
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    
+    JLabel titleLabel = new JLabel("Preferences");
+    titleLabel.setFont(TITLE_FONT);
+    panel.add(titleLabel, BorderLayout.NORTH);
+    
+    JPanel optionsPanel = new JPanel(new GridLayout(0, 1, 0, 10));
+    optionsPanel.setBackground(Color.WHITE);
+    
+    JCheckBox darkModeCheckbox = new JCheckBox("Enable Dark Mode");
+    darkModeCheckbox.setSelected(false); // Would be set from preferences
+    
+    optionsPanel.add(darkModeCheckbox);
+    panel.add(optionsPanel, BorderLayout.CENTER);
+    
+    // Show the dialog
+    int result = JOptionPane.showConfirmDialog(
+        this,
+        panel,
+        "Preferences",
+        JOptionPane.OK_CANCEL_OPTION,
+        JOptionPane.PLAIN_MESSAGE
+    );
+    
+    if (result == JOptionPane.OK_OPTION) {
+        // Save preferences and apply changes
+        boolean darkMode = darkModeCheckbox.isSelected();
+        // Apply dark mode
+        if (darkMode) {
+            // Toggle theme implementation would go here
+            toggleTheme();
+        }
+    }
+}
+
+/**
+ * Logs out the current user and returns to the login screen
+ */
+private void logout() {
+    // Confirm logout
+    int confirm = JOptionPane.showConfirmDialog(
+        this,
+        "Are you sure you want to log out?",
+        "Confirm Logout",
+        JOptionPane.YES_NO_OPTION,
+        JOptionPane.QUESTION_MESSAGE
+    );
+    
+    if (confirm == JOptionPane.YES_OPTION) {
+        // Close the main view
+        dispose();
+        
+        // Create an instance of AuthController and call its logout method
+        AuthController authController = new AuthController(null);
+        authController.logout();
+    }
+}
     
     /**
      * Main method to launch the application
